@@ -1,5 +1,5 @@
-from backend import config
-from backend.llm import llm_call
+from llm import config
+from llm.llm import llm_call
 
 print(f"Sağlayıcı : {config.LLM_PROVIDER}")
 print(f"Model     : {config.LLM_MODEL}")

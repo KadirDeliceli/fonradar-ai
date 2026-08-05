@@ -3,7 +3,7 @@ from __future__ import annotations
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 
-from backend import config
+from llm import config
 
 llm = ChatGroq(
     model=config.LLM_MODEL,

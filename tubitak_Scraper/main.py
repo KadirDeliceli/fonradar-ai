@@ -1,13 +1,13 @@
 """
 FonRadar AI - API katmani
-tubitak_scraper/tubitak_scraper.py icindeki fonlari_getir()'i FastAPI'ye baglar.
+tubitak_scraper/scraper.py icindeki fonlari_getir()'i FastAPI'ye baglar.
 Scraper'in mantigina DOKUNMAZ; sadece cagirir.
 """
 import threading
 
 from fastapi import BackgroundTasks, FastAPI
 
-from .tubitak_scraper import _cache_oku, fonlari_getir, onbellek_taze_mi
+from .scraper import _cache_oku, fonlari_getir, onbellek_taze_mi
 
 app = FastAPI(title="FonRadar AI Backend")
 

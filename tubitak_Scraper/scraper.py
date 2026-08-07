@@ -39,8 +39,10 @@ HEADERS = {
     "User-Agent": "FonRadar-AI-StajProjesi/1.0 (egitim amacli; iletisim: ekip@ornek.com)"
 }
 
-CACHE_FILE = "fonlar.json"
-CACHE_TTL_HOURS = 120      # Verinin gecerlilik suresi (12 saat)
+# CACHE_FILE artik bu dosyanin konumuna sabit (cwd'ye gore kaymaz)
+_BU_DIZIN = os.path.dirname(os.path.abspath(__file__))
+CACHE_FILE = os.path.join(_BU_DIZIN, "fonlar.json")
+CACHE_TTL_HOURS = 12      # Verinin gecerlilik suresi (12 saat)
 
 session = requests.Session()
 session.headers.update(HEADERS)
@@ -207,6 +209,7 @@ def fonlari_getir(force_refresh: bool = False) -> list[dict]:
         saat = gecen_saniye // 3600
         dakika = (gecen_saniye % 3600) // 60
 
+        print("[CACHE HIT] Onbellek TAZE -> siteye gidilmiyor, dosyadan okunuyor.")
         print(f"[CACHE] Onbellek gecerli ({saat} saat {dakika} dk once guncellendi)... "
               f"Scraping atlaniyor, '{CACHE_FILE}' okunuyor...")
         kayitlar = _cache_oku()
@@ -214,6 +217,7 @@ def fonlari_getir(force_refresh: bool = False) -> list[dict]:
         return kayitlar
 
     # CACHE YOK/ESKI -> WEB'DEN KAZI
+    print("[CACHE MISS] Onbellek yok/eski (>12 saat) -> siteden yeniden cekilecek.")
     print("[SCRAPING] Onbellek yok veya suresi dolmus. Siteden yeni veri cekiliyor...")
     kayitlar = []
     linkler = get_fund_links(LIST_URL)

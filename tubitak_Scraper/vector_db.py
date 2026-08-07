@@ -83,10 +83,20 @@ def _bul_json(dosya_adi: str = "fonlar.json") -> str:
 def build_vector_db(force_reindex: bool = False):
     """
     Fon verilerini çeker, parçalar ve ChromaDB vektör veritabanına paketler halinde ekler.
-    Eğer fonlar.json dosyası ChromaDB'den daha yeniyse eski veritabanını temizler ve
-    otomatik olarak senkronize eder.
+    ONCE fonlari_getir() cagrilir (12 saat TTL burada uygulanir): veri eskiyse kazinir ve
+    fonlar.json yenilenir. Ardindan JSON, ChromaDB'den yeniyse eski veritabani temizlenip
+    otomatik senkronize edilir.
     """
-    print(f"\n--- 1. CHROMADB VE YEREL EMBEDDING MODELİ HAZIRLANIYOR ---")
+    # --- 1. VERİ KAZIMA VE CACHE KONTROLÜ (TTL burada: eskiyse kazir, tazeyse okur) ---
+    print("\n--- 1. VERİ KAZIMA VE CACHE KONTROLÜ ---")
+    fonlar = fonlari_getir()
+
+    if not fonlar:
+        print("[HATA] İşlenecek fon verisi bulunamadı!")
+        return None, None
+
+    # --- 2. CHROMADB VE YEREL EMBEDDING MODELİ HAZIRLANIYOR ---
+    print("\n--- 2. CHROMADB VE YEREL EMBEDDING MODELİ HAZIRLANIYOR ---")
     sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFunction(
         model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     )
@@ -95,6 +105,7 @@ def build_vector_db(force_reindex: bool = False):
     chroma_client = chromadb.PersistentClient(path=DB_PATH)
 
     # --- AKILLI SENKRONİZASYON (JSON vs DB) ---
+    # fonlari_getir kazidiysa json artik yeni; bu kontrol onu yakalayip Chroma'yi tazeler.
     json_yolu = _bul_json()
     json_mtime = os.path.getmtime(json_yolu) if os.path.exists(json_yolu) else 0
 
@@ -120,19 +131,13 @@ def build_vector_db(force_reindex: bool = False):
         embedding_function=sentence_transformer_ef
     )
 
+    # Chroma zaten guncel ve doluysa (json degismemis) ingest'i atla; veri hazir.
     if not force_reindex and collection.count() > 0:
         print(
             f"[CHROMADB] Veritabanı zaten güncel ve dolu ({collection.count()} chunk mevcut). "
             "Yeniden indeksleme atlanıyor."
         )
         return chroma_client, collection
-
-    print("\n--- 2. VERİ KAZIMA VE CACHE KONTROLÜ ---")
-    fonlar = fonlari_getir()
-
-    if not fonlar:
-        print("[HATA] İşlenecek fon verisi bulunamadı!")
-        return None, None
 
     print("\n--- 3. METİNLER TEMİZLENİYOR, CHUNK'LARA BÖLÜNÜYOR VE VEKTÖRLEŞTİRİLİYOR ---")
 

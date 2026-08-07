@@ -5,13 +5,17 @@ from fon.fon import skorlanacak_fonlar
 from llm.skorlama import fonlari_skorla
 
 
-def run(kullanici_sorgusu: str = "istanbuldaki ki yapay zeka geliştirme fonları") -> str:
+def run(kullanici_sorgusu: str = "Ankaradaki Yeşil Dönüşüm Fonları") -> str:
     """
     Belirtilen kullanıcı sorgusu için fonları ChromaDB'den çeker, LLM ile skorlar
     ve sonucu JSON string olarak döndürür.
     """
-    # 1. Başlangıç zamanını kaydet
     baslangic_zamani = time.time()
+
+    from tubitak_Scraper.vector_db import build_vector_db
+    build_vector_db()
+    # 1. Başlangıç zamanını kaydet
+
 
     # LLM icin yapilandirilmis prompt (skorlama sehir talebini de dikkate alsin)
     user_prompt = f"""Aşağıdaki kurum bilgilerine göre mevcut fonları değerlendir ve kurumun şehir talebi varsa bunu da göz önünde bulundur:

@@ -33,6 +33,10 @@ class FonSkoru(BaseModel):
     aciklama: str = Field(
         description="Fonun kimligi, sehir ve konu uyumunu kapsayan detayli gerekce ve aciklama metni"
     )
+    fon_id: Optional[str] = Field(
+        default=None,
+        description="Fon başlığından veya metinden çıkarılan fon kodu/id'si (Örn: '1832', '1501', '1507'). Bulunamazsa null bırak."
+    )
     sehir_durumu: Literal["uyuyor", "ulusal", "uymuyor", "bilgi_yok"] = Field(
         description="Sorgudaki sehir fona uyuyor mu (ozel sehirse 'uyuyor', tum Turkiye ise 'ulusal', uymuyorsa 'uymuyor', veri yoksa 'bilgi_yok')"
     )
@@ -47,7 +51,6 @@ class FonSkoru(BaseModel):
         default=None,
         description="Fonun hibe/destek orani veya bütce limiti (metinde acikca varsa yazilir, yoksa null)",
     )
-
 
 PROMPT_SABLONU = """Sen uzman bir hibe ve fon analistisin. Kullanıcının ihtiyacı ile sana sağlanan fon metnini kıyaslayıp dinamik, esnek ve hassas bir uygunluk değerlendirmesi yapacaksın.
 
@@ -75,34 +78,32 @@ HASSAS SKORLAMA VE PUAN KESME/EKLEME MANTIĞI:
 DETAYLI KURALLAR:
 1. aciklama: Açıklamayı mutlaka şu akışla 2-4 cümle olarak yaz:
    - Önce fonsal kimliği ve kapsamı belirt (Örn: "Bu fon [Fon Başlığı], Türkiye genelinde / [Şehir] bölgesinde geçerli bir destektir.").
-   - Ardından kullanıcının şehri ve konusuyla uyumunu açıkla (Örn: "Kullanıcının talep ettiği [Konu] alanındaki projeleri kapsamakta / bu alana özel öncelik sağlamaktadır.").
+   - Ardından kullanıcının şehri ve konusuyla uyumunu açıkla.
    - Kesinlikle "puan kestim", "puan ekledim" gibi ifadeler kullanma; skoru doğrudan içeriğin uygunluğu ve şartların elverişliliği üzerinden gerekçelendir.
-
-2. sehir_durumu:
+2. fon_id: Metne veya başlığa gömülü olan fon id'sini çıkar (Örneğin "1832 - Sanayide Yeşil Dönüşüm Çağrısı" metninden sadece "1832" değerini al).
+3. sehir_durumu:
    - Kullanıcının şehri fon hedeflerinde açıkça varsa -> 'uyuyor'
    - Fon ulusal/genel bir kapsama sahipse (tüm Türkiye'yi kapsıyorsa) -> 'ulusal'
    - Fon doğrudan başka bir coğrafyaya/şehre özelse -> 'uymuyor'
    - Metinde şehir bilgisi yoksa veya sorguda belirtilmediyse -> 'bilgi_yok'
-
-3. konu: Fonun metinden çıkarılan ana odağı/konusu (kısa ve öz).
-4. son_basvuru: Metinde GERÇEKTEN geçen son başvuru tarihi varsa yaz, yoksa null bırak.
-5. hibe_orani: Metinde GERÇEKTEN geçen hibe oranı veya bütçe limitini yaz, yoksa null bırak.
+4. konu: Fonun metinden çıkarılan ana odağı/konusu (kısa ve öz).
+5. son_basvuru: Metinde GERÇEKTEN geçen son başvuru tarihi varsa yaz, yoksa null bırak.
+6. hibe_orani: Metinde GERÇEKTEN geçen hibe oranı veya bütçe limitini yaz, yoksa null bırak.
 
 Yanıtlarında yalnızca sağlanan metindeki gerçek verilere dayan, varsayımda bulunma.
-
 Kritik Kural: Asla markdown (```) veya ekstra metin kullanma. Cevabın doğrudan {{ sembolü ile başlayan ve }} sembolü ile biten saf bir json objesi olmalıdır.
 
 Örnek Format:
 {{
   "skor": 78,
   "aciklama": "Bu fon...",
+  "fon_id": "1832",
   "sehir_durumu": "ulusal",
   "konu": "Ar-Ge ve Yenilik",
   "son_basvuru": null,
   "hibe_orani": "%75"
 }}
 """
-
 
 # Yapili LLM'i BIR KEZ kur, her fon icin yeniden yaratma (optimizasyon).
 _yapili_llm = None

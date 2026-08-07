@@ -202,7 +202,7 @@ cython_debug/
 # .vscode/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
-tubitak_Scraper/chroma_db_data/chroma.sqlite3
+tubitak_Scraper/chroma_db_data
 # Ruff stuff:
 .ruff_cache/
 

@@ -64,7 +64,7 @@ def home():
     return {"status": "online", "message": "FonRadar AI calisiyor"}
 
 
-@app.get("/ara")
+@app.get("/match-score")
 def ara_endpoint(sorgu: str, background_tasks: BackgroundTasks):
     """
     Fonlari arar + skorlar, sonucu JSON doner. Kullaniciyi BEKLETMEZ.
@@ -117,3 +117,27 @@ def ara_endpoint(sorgu: str, background_tasks: BackgroundTasks):
           f"(guncelleniyor={guncelleniyor})")
 
     return cevap
+
+@app.get("/fetch-grants")
+def fetch_grants():
+    """fonlar.json'daki tüm fonların başlık ve url'sini döndürür."""
+    import json
+    from tubitak_Scraper.vector_db import _bul_json
+    try:
+        with open(_bul_json(), encoding="utf-8") as f:
+            tum_fonlar = json.load(f)
+    except FileNotFoundError:
+        return {"adet": 0, "fonlar": [], "mesaj": "fonlar.json bulunamadı."}
+
+    fonlar = [
+        {"baslik": fon.get("baslik", ""), "url": fon.get("url", "")}
+        for fon in tum_fonlar
+    ]
+    return {"adet": len(fonlar), "fonlar": fonlar}
+
+
+
+@app.get("/generate-report")
+def generate_report():
+    """Şimdilik stub: endpoint'in çalıştığını doğrular (girdi almaz)."""
+    return {"durum": "başarılı", "mesaj": "generate-report endpoint çalışıyor."}

@@ -1,6 +1,6 @@
-import type { Grant } from "../types/grant.ts";
+import type { filteredGrant } from "../types/filteredGrant.ts";
 
-export const mockGrants: Grant[] = [
+export const mockFilteredGrants: filteredGrant[] = [
     {
         skor: 98,
         aciklama: "Bu fon 1831 Yeşil İnovasyon Teknoloji Mentörlük Çağrısı, " +

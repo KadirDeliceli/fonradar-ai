@@ -24,7 +24,7 @@ function App() {
 
     const filteredGrants = generatedMockGrants.filter((grant) => {
         const searchText = [grant.baslik, grant.konu, grant.aciklama]
-            .filter((field) => field != null && field != 'null')
+            .filter((field) => field != null && field != 'null' && grant.skor >= 50)
             .join(' ')
             .toLocaleLowerCase('tr')
         return searchText.includes(searchTerm.toLocaleLowerCase('tr'))

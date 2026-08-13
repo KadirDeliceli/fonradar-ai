@@ -203,7 +203,7 @@ cython_debug/
 # .vscode/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
-
+tubitak_Scraper/chroma_db_data
 # Ruff stuff:
 .ruff_cache/
 
@@ -217,6 +217,3 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-
-# API Keys and Environment Variables
-.env

@@ -1,10 +1,9 @@
-import type {filteredGrant} from "../types/filteredGrant.ts"
+import type {grant} from "../types/grant.ts"
 
 type GrantTableProps = {
-    grants: filteredGrant[]
+    grants: grant[]
 }
 
-// Skora göre rozet rengini belirler
 function getScoreStyle(score: number): string {
     if (score >= 85) return 'bg-green-500 text-green-950'
     if (score >= 70) return 'bg-yellow-500 text-yellow-950'

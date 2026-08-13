@@ -1,87 +1,65 @@
 import {useState} from 'react'
-import {Link} from "react-router-dom"
-import {FilterPanel} from "../components/FilterPanel.tsx"
-import {GrantTable} from "../components/GrantTable.tsx"
-import {generatedMockGrants} from "../data/mockFilteredGrantGenerator.ts"
-import logo from "../../public/logo.svg"
+import {fetchMatchedGrants} from "../api/grantApi.ts"
+import type {grant} from "../types/grant.ts";
+import {FilterPanel} from "../components/FilterPanel.tsx";
 
 export function SearchPage() {
     const [query, setQuery] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
+    const [grants, setGrants] = useState<grant[]>([])
+    const [rawCount, setRawCount] = useState(0)
+    const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success' | 'empty' | 'lowScore'>('idle')
+    const [errorMessage, setErrorMessage] = useState('')
 
-    const hasSearch = searchTerm.trim() !== ''
+    const THRESHOLD = 50
 
-    function handleSearch() {
+    async function handleSearch() {
+        if (query.trim() === '') return
         setSearchTerm(query)
+        setStatus('loading')
+        setErrorMessage('')
+        try {
+            const results = await fetchMatchedGrants(query)
+            console.log('gelen: ', results)
+            const highScored = results.filter((grant) => grant.skor >= THRESHOLD)
+            setGrants(highScored)
+            setRawCount(results.length)
+
+            if (highScored.length > 0) {
+                setStatus('success')
+            }else if (results.length > 0 ) {
+                setStatus('lowScore')
+            }else{
+                setStatus('empty')
+            }
+        } catch (err) {
+            setErrorMessage('Fonlar alınamadı. Sunucunun çalıştığından emin olun.')
+            setGrants([])
+            setStatus('error')
+        }
     }
 
     function handleQueryChange(value: string) {
         setQuery(value)
         if (value.trim() === '') {
+            setStatus('idle')
+            setGrants([])
             setSearchTerm('')
+            setErrorMessage('')
         }
     }
 
-    const filteredGrants = generatedMockGrants.filter((grant) => {
-        const searchText = [grant.baslik, grant.konu, grant.aciklama]
-            .filter((field) => field != null && field != 'null' && grant.skor >= 50)
-            .join(' ')
-            .toLocaleLowerCase('tr')
-        return searchText.includes(searchTerm.toLocaleLowerCase('tr'))
-    })
     return (
-        <div className="min-h-screen bg-white">
-            <div className={`mx-auto max-w-7xl px-6 transition-all ${hasSearch ? 'pt-10' : 'pt-32'}`}>
-                <div className="flex items-center justify-center gap-3">
-                    <img
-                        src={logo}
-                        alt="FonRadar AI logosu"
-                        className={hasSearch ? 'h-32' : 'h-64'}
-                    />
-                    <h1 className={`font-bold text-green-950 ${hasSearch ? 'text-5xl' : 'text-7xl'}`}>
-                        FonRadar AI
-                    </h1>
-                </div>
-                <div className="mt-8">
-                    <FilterPanel
-                        query={query}
-                        onSearch={handleSearch}
-                        onQueryChange={handleQueryChange}
-                    />
-                </div>
-
-                {!hasSearch && (
-                    <div className="mt-6 text-center">
-                        <Link
-                            to="/admin"
-                            className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        >
-                            Tüm Fonları Görüntüle
-                        </Link>
-                    </div>
-                )}
-
-                {hasSearch && (
-                    <div className="mt-18 pb-12">
-                        {filteredGrants.length > 0 ? (
-                            <div>
-                            <span className="mb-6 px-4 border-3 border-gray-200 text-md text-green-950 font-bold ">
-                                {filteredGrants.length} sonuç bulundu
-                            </span>
-                                <div className="bg-white">
-                                    <GrantTable grants={filteredGrants}/>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-                                <p className="text-red-600">
-                                    "{searchTerm}" ile eşleşen fon bulunamadı.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
+        <FilterPanel
+            query={query}
+            searchTerm={searchTerm}
+            onQueryChange={handleQueryChange}
+            onSearch={handleSearch}
+            grants={grants}
+            rawCount={rawCount}
+            status={status}
+            errorMessage={errorMessage}
+            THRESHOLD={THRESHOLD}
+        />
     )
 }

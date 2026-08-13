@@ -1,15 +1,29 @@
-import {Link} from "react-router-dom"
-import {AdminPanel} from "../components/AdminPanel.tsx"
+import {useEffect, useState} from "react";
+import type {rawGrant} from "../types/rawGrant.ts";
+import {fetchAllGrant} from "../api/grantApi.ts";
+import {AdminPanel} from "../components/AdminPanel.tsx";
 
 export function AdminPage(){
+    const [grants, setGrants ] = useState<rawGrant[]>([])
+    const [status, setStatus] = useState<'loading' | 'error' | 'success' | 'empty'>('loading')
+    const [errorMessage, setErrorMessage] = useState('')
+
+    useEffect(()=>{
+        async function loadGrants() {
+            try {
+                const results = await (fetchAllGrant())
+                setGrants(results)
+                setStatus('success')
+            } catch (err) {
+                setErrorMessage("Fon listesi alınamadı. Sunucunun çalıştığından emin olun.")
+                setStatus('error')
+            }
+        }
+
+        loadGrants()
+    }, [] )
+
     return(
-        <div className="min-h-screen bg-gray-50">
-            <div className="mx-auto max-w-7xl px-6 pt-10">
-                <Link to="/" className="mb-6 inline-block text-sm text-blue-600 hover:underline">
-                    ← Aramaya dön
-                </Link>
-                <AdminPanel/>
-            </div>
-        </div>
+        <AdminPanel grants={grants} status={status} errorMessage={errorMessage}/>
     )
 }

@@ -27,6 +27,20 @@ from tubitak_Scraper.vector_db import build_vector_db
 
 app = FastAPI(title="FonRadar AI Backend")
 
+""" CORS hatası alıyordum, mainAPI.py'ye CORSMiddleware ekledim.
+Frontend'in backend'e istek atabilmesi için gerekliydi.
+Gün 18'de Vercel'e deploy edince oraya da canlı adresi eklememiz gerekecek.
+"""
+
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Ayni anda birden fazla arka plan yenilemesi baslamasin diye bayrak + kilit.
 _yenileme_aktif = False
 _kilit = threading.Lock()

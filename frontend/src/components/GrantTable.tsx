@@ -1,4 +1,4 @@
-import type {filteredGrant} from "../types/filteredGrant.ts";
+import type {filteredGrant} from "../types/filteredGrant.ts"
 
 type GrantTableProps = {
     grants: filteredGrant[]

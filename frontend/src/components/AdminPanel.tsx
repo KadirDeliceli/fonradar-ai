@@ -1,7 +1,7 @@
-import {AdminPanelGrantTable} from './components/AdminPanelGrantTable.tsx'
-import {generatedMockGrants} from "./data/mockFilteredGrantGenerator.ts";
+import {AdminPanelGrantTable} from './AdminPanelGrantTable.tsx'
+import {generatedMockGrants} from "../data/mockFilteredGrantGenerator.ts"
 
-export function AdminPanelApp() {
+export function AdminPanel() {
     return (
         <div className="mt-12 pb-12">
             {generatedMockGrants.length > 0 ? (

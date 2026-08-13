@@ -1,4 +1,4 @@
-import type {nonFilteredGrant} from "../types/nonFilteredGrant.ts";
+import type {nonFilteredGrant} from "../types/nonFilteredGrant.ts"
 
 export const mockNonFilteredGrants: nonFilteredGrant[] = [
     {

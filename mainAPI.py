@@ -163,12 +163,18 @@ def ara_endpoint(sorgu: str, background_tasks: BackgroundTasks):
                 "sonuclar": sonuclar,
             }
         except Exception as e:
-            # LLM Kota / Rate Limit veya herhangi bir skorlama hatasında ÇÖKMEYECEK, bu JSON'ı dönecek:
+            # LLM Kota / Rate Limit veya herhangi bir skorlama hatasında ÇÖKMEYECEK, bu JSON'ı dönecek.
+            # Hata mesaji, sebebi netlestirsin diye GERCEK hatayi icerir (sabit "kota doldu" degil).
             print(f"[/match-score HATA] LLM Skorlama Başarısız: {e}")
+            hata_metni = str(e)
+            if "429" in hata_metni or "rate" in hata_metni.lower() or "quota" in hata_metni.lower():
+                kullanici_mesaji = "API kotası/rate limit doldu. Lütfen birkaç dakika sonra tekrar deneyin."
+            else:
+                kullanici_mesaji = f"Skorlama sırasında bir hata oluştu: {hata_metni}"
             cevap = {
                 "durum": "basarısız",
                 "guncelleniyor": guncelleniyor,
-                "mesaj": "API kotası doldu.",
+                "mesaj": kullanici_mesaji,
                 "sonuclar": []
             }
 
@@ -188,6 +194,10 @@ def fetch_grants():
             tum_fonlar = json.load(f)
     except FileNotFoundError:
         return {"adet": 0, "fonlar": [], "mesaj": "fonlar.json bulunamadı."}
+    except json.JSONDecodeError as e:
+        return {"adet": 0, "fonlar": [], "mesaj": f"fonlar.json bozuk/okunamadı: {e}"}
+    except Exception as e:
+        return {"adet": 0, "fonlar": [], "mesaj": f"Fonlar getirilirken hata oluştu: {e}"}
 
     fonlar = [
         {"baslik": fon.get("baslik", ""), "url": fon.get("url", "")}
@@ -201,3 +211,5 @@ def fetch_grants():
 def generate_report():
     """Şimdilik stub: endpoint'in çalıştığını doğrular (girdi almaz)."""
     return {"durum": "başarılı", "mesaj": "generate-report endpoint çalışıyor."}
+
+

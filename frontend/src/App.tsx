@@ -1,16 +1,13 @@
-import {Routes, Route} from "react-router-dom"
-import {SearchPage} from "./pages/SearchPage.tsx"
-import {AdminPage} from "./pages/AdminPage.tsx"
-import {StrictMode} from "react";
+import { Routes, Route } from "react-router-dom";
+import { SearchPage } from "./pages/SearchPage.tsx";
+import { AdminPage } from "./pages/AdminPage.tsx";
 
 function App() {
     return (
-        <StrictMode>
-            <Routes>
-                <Route path="/" element={<SearchPage/>}/>
-                <Route path="/admin" element={<AdminPage/>}/>
-            </Routes>
-        </StrictMode>
-    )
+        <Routes>
+            <Route path="/" element={<SearchPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+        </Routes>
+    );
 }
-export default App
+export default App;

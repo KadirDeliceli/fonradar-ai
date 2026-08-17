@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { StatusMessage } from "../components/StatusMessage.tsx";
-import type { rawGrant } from "../types/rawGrant.ts";
+import type { RawGrant } from "../types/RawGrant.ts";
 import { RawGrantTable } from "../components/RawGrantTable.tsx";
 import { fetchAllGrant } from "../api/grantApi.ts";
 
 export function AdminPage() {
-    const [grants, setGrants] = useState<rawGrant[]>([]);
+    const [grants, setGrants] = useState<RawGrant[]>([]);
     const [status, setStatus] = useState<
         "loading" | "error" | "success" | "empty"
     >("loading");
@@ -19,20 +19,21 @@ export function AdminPage() {
                 setGrants(results);
                 setStatus(results.length > 0 ? "success" : "empty");
             } catch (err) {
-                setErrorMessage(
-                    "Fon listesi alınamadı. Sunucunun çalıştığından emin olun.",
-                );
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Beklenmeyen bir hata oluştu.";
+                setErrorMessage(message);
                 setStatus("error");
             }
         }
 
-        loadGrants();
+        void loadGrants();
     }, []);
 
     return (
         <div className="min-h-screen bg-white">
             <div className="mx-auto max-w-7xl px-6 pt-10 pb-12">
-
                 <div className="mt-18 pb-12">
                     {status === "loading" && (
                         <StatusMessage>Fonlar Yükleniyor...</StatusMessage>
@@ -47,14 +48,20 @@ export function AdminPage() {
                             <StatusMessage>
                                 {grants.length} sonuç bulundu.
                             </StatusMessage>
-                            <div className="bg-white p-6 ">
+                            <br />
+                            <div className="overflow-hidden rounded-lg border border-gray-200">
+                                <div className="border-b border-gray-200 bg-gray-50 py-5 text-center">
+                                    <h1 className="font-semibold text-gray-700">
+                                        Tüm Kazınan Fon Listesi
+                                    </h1>
+                                </div>
                                 <RawGrantTable grants={grants} />
                             </div>
                         </div>
                     )}
                     {status === "empty" && (
-                        <StatusMessage tone="error">
-                            kazınan fon listesi boş.
+                        <StatusMessage tone="warning">
+                            Kazınan fon listesi boş.
                         </StatusMessage>
                     )}
                 </div>

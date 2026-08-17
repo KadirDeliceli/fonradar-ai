@@ -1,4 +1,4 @@
-type SearchFormProps = {
+type QueryPanelProps = {
     query: string;
     onQueryChange: (value: string) => void;
     onSearch: () => void;
@@ -8,15 +8,13 @@ export function QueryPanel({
     query,
     onQueryChange,
     onSearch,
-}: SearchFormProps) {
-    function handleSubmit(event: React.FormEvent) {
-        event.preventDefault();
-        onSearch();
-    }
-
+}: QueryPanelProps) {
     return (
         <form
-            onSubmit={handleSubmit}
+            onSubmit={(event) => {
+                event.preventDefault();
+                onSearch();
+            }}
             className="flex gap-3 rounded-full border border-gray-200 bg-white p-4"
         >
             <img

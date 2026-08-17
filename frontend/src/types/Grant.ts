@@ -1,4 +1,4 @@
-export type grant = {
+export type Grant = {
     skor: number;
     aciklama: string | null;
     sehir_durumu: string | null;
@@ -13,5 +13,5 @@ export type MatchScoreResponse = {
     durum: string;
     guncelleniyor: boolean;
     mesaj: string;
-    sonuclar: grant[];
+    sonuclar: Grant[];
 };

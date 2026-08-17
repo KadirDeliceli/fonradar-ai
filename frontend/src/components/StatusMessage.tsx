@@ -1,3 +1,5 @@
+import React from "react";
+
 type StatusMessageProps = {
     tone?: "neutral" | "error" | "warning";
     children: React.ReactNode;
@@ -18,7 +20,6 @@ export function StatusMessage({
             className={`rounded-full border p-10 text-center text-lg font-medium ${toneStyles[tone]}`}
         >
             {children}
-
         </div>
     );
 }

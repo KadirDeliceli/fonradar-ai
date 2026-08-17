@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchMatchedGrants } from "../api/grantApi.ts";
-import type { grant } from "../types/grant.ts";
+import type { Grant } from "../types/Grant.ts";
 import { BrandLogo } from "../components/BrandLogo.tsx";
 import { QueryPanel } from "../components/QueryPanel.tsx";
 import { StatusMessage } from "../components/StatusMessage.tsx";
@@ -12,7 +12,9 @@ const THRESHOLD = 50;
 export function SearchPage() {
     const [query, setQuery] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
-    const [grants, setGrants] = useState<grant[]>([]);
+    const [grants, setGrants] = useState<Grant[]>([]);
+    const [allGrants, setAllGrants] = useState<Grant[]>([]);
+    const [showAll, setShowAll] = useState(false);
     const [rawCount, setRawCount] = useState(0);
     const [status, setStatus] = useState<
         "idle" | "loading" | "error" | "success" | "empty" | "lowScore"
@@ -24,11 +26,13 @@ export function SearchPage() {
         setSearchTerm(query);
         setStatus("loading");
         setErrorMessage("");
+        setShowAll(false);
         try {
             const results = await fetchMatchedGrants(query);
-            const highScored = results
-                .filter((grant) => grant.skor >= THRESHOLD)
-                .sort((a, b) => b.skor - a.skor);
+            const sorted = [...results].sort((a, b) => b.skor - a.skor);
+            const highScored = sorted.filter((item) => item.skor >= THRESHOLD);
+
+            setAllGrants(sorted);
             setGrants(highScored);
             setRawCount(results.length);
 
@@ -40,10 +44,13 @@ export function SearchPage() {
                 setStatus("empty");
             }
         } catch (err) {
-            setErrorMessage(
-                "Fonlar alınamadı. Sunucunun çalıştığından emin olun.",
-            );
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Beklenmeyen bir hata oluştu.";
+            setErrorMessage(message);
             setGrants([]);
+            setAllGrants([]);
             setStatus("error");
         }
     }
@@ -53,6 +60,8 @@ export function SearchPage() {
         if (value.trim() === "") {
             setStatus("idle");
             setGrants([]);
+            setAllGrants([]);
+            setShowAll(false);
             setSearchTerm("");
             setErrorMessage("");
         }
@@ -100,32 +109,72 @@ export function SearchPage() {
                         {status === "success" && (
                             <div>
                                 <StatusMessage>
-                                    {grants.length} sonuç bulundu
+                                    <p>
+                                        {showAll
+                                            ? allGrants.length
+                                            : grants.length}{" "}
+                                        sonuç bulundu.
+                                    </p>
+                                    {rawCount > grants.length && (
+                                        <div className="mt-3 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setShowAll(!showAll)
+                                                }
+                                                className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                            >
+                                                {showAll
+                                                    ? "Sadece uygun fonları göster"
+                                                    : `Skoru düşük ${rawCount - grants.length} fonu da göster`}
+                                            </button>
+                                        </div>
+                                    )}
                                 </StatusMessage>
                                 <div className="bg-white p-6 ">
-                                    <GrantTable grants={grants} />
+                                    <GrantTable
+                                        grants={showAll ? allGrants : grants}
+                                    />
                                 </div>
                             </div>
                         )}
 
                         {status === "empty" && (
-                            <StatusMessage tone="error">
+                            <StatusMessage tone="warning">
                                 "{searchTerm}" ile eşleşen fon bulunamadı.
                             </StatusMessage>
                         )}
 
                         {status === "lowScore" && (
-                            <StatusMessage tone="warning">
-                                <p>
-                                    "{searchTerm}" için {rawCount} fon bulundu,
-                                    ancak hiçbirinin uygunluk skoru {THRESHOLD}{" "}
-                                    eşiğini geçmedi.
-                                </p>
-                                <p className="mt-2 text-sm">
-                                    Aramanızı farklı kelimelerle
-                                    deneyebilirsiniz.
-                                </p>
-                            </StatusMessage>
+                            <div>
+                                <StatusMessage tone="warning">
+                                    <p>
+                                        "{searchTerm}" için {rawCount} fon
+                                        bulundu, ancak hiçbirinin uygunluk skoru{" "}
+                                        {THRESHOLD} eşiğini geçmedi.
+                                    </p>
+                                    <p className="mt-2 text-sm">
+                                        Aramanızı farklı kelimelerle
+                                        deneyebilirsiniz.
+                                    </p>
+                                    <div className="mt-3 text-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAll(!showAll)}
+                                            className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                        >
+                                            {showAll
+                                                ? "Sonuçları gizle"
+                                                : `Yine de ${rawCount} fonu göster`}
+                                        </button>
+                                    </div>
+                                </StatusMessage>
+                                {showAll && (
+                                    <div className="bg-white p-6">
+                                        <GrantTable grants={allGrants} />
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}

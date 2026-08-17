@@ -1,7 +1,7 @@
-import type { grant } from "../types/grant.ts";
+import type { Grant } from "../types/Grant.ts";
 
 type GrantTableProps = {
-    grants: grant[];
+    grants: Grant[];
 };
 
 function getScoreStyle(score: number): string {
@@ -18,7 +18,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                 <thead className="border-b border-gray-200 bg-gray-50 text-gray-600">
                     <tr>
                         <th className="px-4 py-3 font-medium w-[7%] whitespace-nowrap">
-                            Fon ID
+                            #
                         </th>
                         <th className="px-4 py-3 font-medium w-[26%]">
                             Başlık
@@ -65,7 +65,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                                         : grant.aciklama}
                                 </span>
                             </td>
-                            <td className="pl-4 py-3 text-gray-600">
+                            <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                                 {grant.hibe_orani ?? "Bilgi Bulunamadı"}
                             </td>
                             <td className="px-4 py-3 text-gray-600 whitespace-nowrap">

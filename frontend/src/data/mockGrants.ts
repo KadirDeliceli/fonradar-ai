@@ -1,6 +1,6 @@
-import type { grant } from "../types/grant.ts";
+import type { Grant } from "../types/Grant.ts";
 
-export const mockGrants: grant[] = [
+export const mockGrants: Grant[] = [
     {
         skor: 92,
         baslik: "1833 - SAYEM Yeşil Dönüşüm Çağrısı",
@@ -46,7 +46,7 @@ export const mockGrants: grant[] = [
         url: "https://tubitak.gov.tr/tr/destekler/sanayi/ulusal-destek-programlari/1707-siparise-dayali-ar-ge-projeleri-icin-kobi-destekleme-cagrisi",
     },
     {
-        skor: 53,
+        skor: 48,
         baslik: null,
         konu: "Ar-Ge ve Yenilik",
         aciklama:

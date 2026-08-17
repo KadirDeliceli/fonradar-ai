@@ -15,10 +15,9 @@ Kullanim:
 from __future__ import annotations
 
 from typing import Literal, Optional
-
 from pydantic import BaseModel, Field
-
 from llm.llm import get_llm
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 MAKS_KARAKTER = 15000
 
@@ -52,7 +51,7 @@ class FonSkoru(BaseModel):
         description="Fonun hibe/destek orani veya bütce limiti (metinde acikca varsa yazilir, yoksa null)",
     )
 
-PROMPT_SABLONU = """Sen uzman bir hibe ve fon analistisin. Kullanıcının ihtiyacı ile sana sağlanan fon metnini kıyaslayıp dinamik, esnek ve hassas bir uygunluk değerlendirmesi yapacaksın.
+PROMPT_SABLONU = """Sen uzman bir hibe ve fon analistisin. Kullanıcının ihtiyacı ile sana sağlanan fon metnini kıyaslayıp dinamik, esnek ve son derece hassas bir uygunluk değerlendirmesi yapacaksın.
 
 KULLANICI SORGUSU:
 {sorgu}
@@ -61,45 +60,51 @@ FON BAŞLIĞI: {baslik}
 FON METNİ:
 {metin}
 
-HASSAS SKORLAMA VE PUAN KESME/EKLEME MANTIĞI:
-1. Temel Taban Puanı Belirle:
-   - 90 - 100 Derece: Fon metninde kullanıcının konusu "özel çağrı", "öncelikli alan" veya "hedef sektör" olarak AÇIKÇA geçiyorsa.
-   - 70 - 89 Derece: Fon genel bir Ar-Ge/teknoloji şemsiye desteğiyse ve kullanıcının konusunu kapsıyorsa.
-   - 40 - 69 Derece: Fon kısmen alakalıysa veya ağır özel katılım şartları (müşteri bulma, eş-finansman vb.) barındırıyorsa.
-   - 1 - 39 Derece: Konuyla çok az/dolaylı alakalıysa.
-   - 0 Derece: Kullanıcı konusuyla ve Ar-Ge ile tamamen alakasızsa.
+DİNAMİK VE HASSAS SKORLAMA METODOLOJİSİ:
 
-2. Makro/Mikro Puan Ayarlaması ve Kesintiler (Kesinlikle Uygula):
-   - Kesinlikle 70, 80, 90 gibi yuvarlak ve sabit sayılara takılı kalma; 73, 82, 68 gibi hassas tam sayı (integer) puanlar ver.
-   - BARIYER/KESİNTİ KURALI: Eğer fon genel bir destek sunuyor ama kullanıcının konusuna ÖZEL bir öncelik vermiyorsa, ya da müşteri/ortak bulma gibi ekstra yükümlülükler getiriyorsa taban puandan 3 ila 15 puan arasında MAKRO KESİNTİ yap.
-   - AVANTAJ KURALI: Yüksek hibe oranı (%75 vb.), KOBİ dostu başvuru koşulları veya esnek takvim gibi avantajlar varsa puana 2 ila 5 puan MİKRO EKLEME yap.
-   - Potansiyeli düşük veya şartı uymayan fonlarda puanı cömert davranmayıp kararlılıkla KES.
+[Adım 1: Taban Puanı Belirle (0 - 100)]
+- 90 - 100: Fon metninde kullanıcının konusu "özel çağrı", "öncelikli alan" veya "hedef sektör" olarak BİREBİR/AÇIKÇA geçiyorsa.
+- 70 - 89: Fon genel bir Ar-Ge/teknoloji şemsiye desteğiyse ve kullanıcının konusunu dolaylı da olsa kapsıyorsa.
+- 40 - 69: Fon kısmen alakalıysa veya ağır katılım/ortaklık şartları barındırıyorsa.
+- 1 - 39: Fon kullanıcının konusuyla çok az veya zayıf bir şekilde ilişkiliyse.
+- 0: Kullanıcı konusuyla, sektörüyle veya ölçeğiyle tamamen alakasızsa.
 
-DETAYLI KURALLAR:
+[Adım 2: Makro/Mikro Düzeltme Puanları (ZORUNLU UYGULA)]
+Aşağıdaki durumları tespit et ve taban puana ekle/çıkar. Kesinlikle 70, 80, 85 gibi standart yuvarlak sayılarda takılı kalma (Örn: 67, 73, 81, 92 gibi hassas puanlar üret):
+- Çıkarılacak Puanlar (Kararlılıkla KES):
+  * Fon genel bir destek ama kullanıcının konusuna ÖZEL BİR ÖNCELİK tanımıyorsa: (-5 ile -12 puan)
+  * Müşteri/ortak bulma, ağır eş-finansman veya zorlu ön şartlar varsa: (-3 ile -10 puan)
+  * Kullanıcının ölçeği veya aşaması (örn. fikir aşaması vs. seri üretim) tam örtüşmüyorsa: (-4 ile -8 puan)
+- Eklenen Puanlar (Avantajlar):
+  * Yüksek hibe oranı (%70 ve üzeri), KOBİ dostu şartlar, esnek takvim veya başvuru kolaylığı: (+2 ile +5 puan)
+
+DETAYLI ALAN KURALLARI:
 1. aciklama: Açıklamayı mutlaka şu akışla 2-4 cümle olarak yaz:
    - Önce fonsal kimliği ve kapsamı belirt (Örn: "Bu fon [Fon Başlığı], Türkiye genelinde / [Şehir] bölgesinde geçerli bir destektir.").
-   - Ardından kullanıcının şehri ve konusuyla uyumunu açıkla.
-   - Kesinlikle "puan kestim", "puan ekledim" gibi ifadeler kullanma; skoru doğrudan içeriğin uygunluğu ve şartların elverişliliği üzerinden gerekçelendir.
-2. fon_id: Metne veya başlığa gömülü olan fon id'sini çıkar (Örneğin "1832 - Sanayide Yeşil Dönüşüm Çağrısı" metninden sadece "1832" değerini al).
+   - Ardından kullanıcının şehri ve konusuyla uyumunu/uyumsuzluğunu nedenleriyle açıkla.
+   - METİNDE KESİNLİKLE "puan kestim", "taban puan", "bonus ekledim" gibi teknik değerlendirme terimleri KULLANMA.
+2. fon_id: Metne veya başlığa gömülü olan fon ID'sini çıkar (Örn: "1832 - Sanayide Yeşil Dönüşüm" -> "1832"). Yoksa null bırak.
 3. sehir_durumu:
-   - Kullanıcının şehri fon hedeflerinde açıkça varsa -> 'uyuyor'
-   - Fon ulusal/genel bir kapsama sahipse (tüm Türkiye'yi kapsıyorsa) -> 'ulusal'
-   - Fon doğrudan başka bir coğrafyaya/şehre özelse -> 'uymuyor'
-   - Metinde şehir bilgisi yoksa veya sorguda belirtilmediyse -> 'bilgi_yok'
-4. konu: Fonun metinden çıkarılan ana odağı/konusu (kısa ve öz).
-5. son_basvuru: Metinde GERÇEKTEN geçen son başvuru tarihi varsa yaz, yoksa null bırak.
-6. hibe_orani: Metinde GERÇEKTEN geçen hibe oranı veya bütçe limitini yaz, yoksa null bırak.
+   - Kullanıcının şehri fon hedeflerinde/metninde açıkça varsa -> 'uyuyor'
+   - Fon ulusal/genel bir kapsama sahipse (tüm Türkiye) -> 'ulusal'
+   - Fon doğrudan farklı bir coğrafyaya/şehre özelse -> 'uymuyor'
+   - Metinde şehir bilgisi yoksa veya sorguda şehir belirtilmediyse -> 'bilgi_yok'
+4. konu: Fonun metinden çıkarılan ana odağı/konusu (kısa ve öz, maks 4-5 kelime).
+5. son_basvuru: Metinde GERÇEKTEN geçen son başvuru tarihi (Format varsa: DD.MM.YYYY veya metindeki halı), yoksa null.
+6. hibe_orani: Metinde GERÇEKTEN geçen hibe oranı veya bütçe limiti, yoksa null.
 
-Yanıtlarında yalnızca sağlanan metindeki gerçek verilere dayan, varsayımda bulunma.
-Kritik Kural: Asla markdown (```) veya ekstra metin kullanma. Cevabın doğrudan {{ sembolü ile başlayan ve }} sembolü ile biten saf bir json objesi olmalıdır.
+ÇIKTI KISITLAMALARI (ÇOK KRİTİK):
+- Yanıtlarında yalnızca sağlanan metindeki gerçek verilere dayan, asla dışarıdan varsayımda bulunma.
+- Markdown bloğu (```json ... ``` veya ```), açıklama, giriş veya sonuç yazısı KESİNLİKLE KULLANMA.
+- Cevabın istisnasız doğrudan {{ sembolü ile başlayan ve }} sembolü ile biten geçerli (valid) bir JSON objesi olmalıdır.
 
-Örnek Format:
+JSON Formatı:
 {{
-  "skor": 78,
+  "skor": 73,
   "aciklama": "Bu fon...",
   "fon_id": "1832",
   "sehir_durumu": "ulusal",
-  "konu": "Ar-Ge ve Yenilik",
+  "konu": "Yapay Zeka ve Yazılım",
   "son_basvuru": null,
   "hibe_orani": "%75"
 }}
@@ -117,13 +122,14 @@ def _get_yapili_llm():
 
 
 def _metni_hazirla(fon: dict) -> str:
-    """full_text'i alir; sadece anormal uzunsa emniyet tavanina kirpar."""
     metin = fon.get("full_text", "") or ""
     if len(metin) > MAKS_KARAKTER:
         metin = metin[:MAKS_KARAKTER] + "\n...[metin kisaltildi]"
     return metin
 
 
+# Rate Limit yediğinde pes etmeyip 2sn, 4sn, 8sn bekleyerek 3 kez tekrar dener
+@retry(wait=wait_random_exponential(min=2, max=10), stop=stop_after_attempt(3))
 def fonu_skorla(fon: dict, sorgu: str) -> FonSkoru:
     """Tek fonu tek LLM cagrisinda skorlar, FonSkoru doner."""
     prompt = PROMPT_SABLONU.format(
@@ -137,22 +143,20 @@ def fonu_skorla(fon: dict, sorgu: str) -> FonSkoru:
 def fonlari_skorla(fonlar: list[dict], sorgu: str) -> list[dict]:
     """
     Fon listesini skorlar, skora gore YUKSEKTEN DUSUGE sirali dict listesi doner.
-    Her sonuc: skor, aciklama, sehir_durumu, konu, son_basvuru, hibe_orani + baslik + url.
-    Bir fon skorlanamazsa atlanir (tumunu cokertmez).
+    Hata durumunda yutmaz, yukarıya (mainAPI) fırlatır.
     """
     sonuclar = []
     for i, fon in enumerate(fonlar, 1):
         baslik = fon.get("baslik", "?")
         print(f"[SKOR] ({i}/{len(fonlar)}) {baslik}")
-        try:
-            skor = fonu_skorla(fon, sorgu)
-            sonuclar.append({
-                **skor.model_dump(),
-                "baslik": baslik,
-                "url": fon.get("url"),
-            })
-        except Exception as e:
-            print(f"[SKOR HATA] {baslik} -> {e}")
+
+        # Hatayı yutmuyoruz ki mainAPI.py tarafındaki try-except yakalayıp düzgün JSON dönebilsin
+        skor = fonu_skorla(fon, sorgu)
+        sonuclar.append({
+            **skor.model_dump(),
+            "baslik": baslik,
+            "url": fon.get("url"),
+        })
 
     sonuclar.sort(key=lambda x: x["skor"], reverse=True)
     return sonuclar

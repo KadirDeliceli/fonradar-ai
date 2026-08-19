@@ -29,7 +29,7 @@ export const mockGrants: Grant[] = [
         konu: "Yeşil İnovasyon ve Teknoloji Mentörlüğü",
         aciklama:
             "KOBİ'lerin yeşil dönüşüm süreçlerinde teknik yardım almasına yönelik destek sunar.",
-        sehir_durumu: "ulusal",
+        sehir_durumu: "ankara",
         son_basvuru: "15 Eylül 2026",
         hibe_orani: "%90",
         url: null,
@@ -40,7 +40,7 @@ export const mockGrants: Grant[] = [
         konu: "Ar-Ge ve Yenilik",
         aciklama:
             "Tüm sektörlerden ve tüm teknoloji alanlarından, ticarileşme potansiyeli yüksek Ar-Ge projelerini destekler.",
-        sehir_durumu: "ulusal",
+        sehir_durumu: "null",
         son_basvuru: "13 Kasım 2026",
         hibe_orani: null,
         url: "https://tubitak.gov.tr/tr/destekler/sanayi/ulusal-destek-programlari/1707-siparise-dayali-ar-ge-projeleri-icin-kobi-destekleme-cagrisi",

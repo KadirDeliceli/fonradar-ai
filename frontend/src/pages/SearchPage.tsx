@@ -9,6 +9,8 @@ import { GrantTable } from "../components/GrantTable.tsx";
 import { ScoreChart } from "../components/ScoreChart.tsx";
 import { TopicChart } from "../components/TopicChart.tsx";
 import { ScoreSummary } from "../components/ScoreSummary.tsx";
+import { ScopeChart } from "../components/ScopeChart.tsx";
+import { ReportHeader } from "../components/ReportHeader.tsx";
 
 const THRESHOLD = 50;
 
@@ -111,43 +113,60 @@ export function SearchPage() {
 
                         {status === "success" && (
                             <div>
-                                <StatusMessage>
-                                    <p>
-                                        {showAll
+                                <ReportHeader
+                                    searchTerm={searchTerm}
+                                    count={
+                                        showAll
                                             ? allGrants.length
-                                            : grants.length}{" "}
-                                        sonuç bulundu.
-                                    </p>
-                                    {rawCount > grants.length && (
-                                        <div className="mt-3 text-center">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setShowAll(!showAll)
-                                                }
-                                                className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
-                                            >
-                                                {showAll
-                                                    ? "Sadece uygun fonları göster"
-                                                    : `Skoru düşük ${rawCount - grants.length} fonu da göster`}
-                                            </button>
-                                        </div>
-                                    )}
-                                </StatusMessage>
-                                <div className="mt-6 py-15">
+                                            : grants.length
+                                    }
+                                    hiddenCount={
+                                        showAll ? 0 : rawCount - grants.length
+                                    }
+                                    threshold={THRESHOLD}
+                                />
+                                <div className="yazdirma-gizle">
+                                    <StatusMessage>
+                                        <p>
+                                            {showAll
+                                                ? allGrants.length
+                                                : grants.length}{" "}
+                                            sonuç bulundu.
+                                        </p>
+                                        {rawCount > grants.length && (
+                                            <div className="mt-3 text-center">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowAll(!showAll)
+                                                    }
+                                                    className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                                >
+                                                    {showAll
+                                                        ? "Sadece uygun fonları göster"
+                                                        : `Skoru düşük ${rawCount - grants.length} fonu da göster`}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </StatusMessage>
+                                </div>
+                                <div className="mt-6 py-15 yazdirma-blok print:py-0 grid grid-cols-1 gap-16">
                                     <TopicChart
                                         grants={showAll ? allGrants : grants}
                                     />
+                                    <ScopeChart
+                                        grants={showAll ? allGrants : grants}
+                                    />
                                 </div>
-                                <div className="flex w-full items-center justify-center gap-10 px-6 py-15">
-                                    <div className="flex-3/4">
+                                <div className="mt-6 grid grid-cols-4 gap-6 print:grid-cols-1 items-center">
+                                    <div className="col-span-3 print:col-span-1">
                                         <ScoreChart
                                             grants={
                                                 showAll ? allGrants : grants
                                             }
                                         />
                                     </div>
-                                    <div className="flex-1/4">
+                                    <div>
                                         <ScoreSummary
                                             grants={
                                                 showAll ? allGrants : grants
@@ -160,7 +179,7 @@ export function SearchPage() {
                                         grants={showAll ? allGrants : grants}
                                     />
                                 </div>
-                                <div className="mt-4 text-center">
+                                <div className="mt-4 text-center yazdirma-gizle">
                                     <button
                                         type="button"
                                         onClick={() => window.print()}
@@ -168,6 +187,11 @@ export function SearchPage() {
                                     >
                                         Raporu PDF olarak indir
                                     </button>
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Açılan pencerede "PDF olarak kaydet"
+                                        seçin, üstbilgi/altbilgiyi
+                                        kapatabilirsiniz.
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -180,39 +204,60 @@ export function SearchPage() {
 
                         {status === "lowScore" && (
                             <div>
-                                <StatusMessage tone="warning">
-                                    <p>
-                                        "{searchTerm}" için {rawCount} fon
-                                        bulundu, ancak hiçbirinin uygunluk skoru{" "}
-                                        {THRESHOLD} eşiğini geçmedi.
-                                    </p>
-                                    <p className="mt-2 text-sm">
-                                        Aramanızı farklı kelimelerle
-                                        deneyebilirsiniz.
-                                    </p>
-                                    <div className="mt-3 text-center">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowAll(!showAll)}
-                                            className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
-                                        >
-                                            {showAll
-                                                ? "Sonuçları gizle"
-                                                : `Yine de ${rawCount} fonu göster`}
-                                        </button>
-                                    </div>
-                                </StatusMessage>
+                                <ReportHeader
+                                    searchTerm={searchTerm}
+                                    count={
+                                        showAll
+                                            ? allGrants.length
+                                            : grants.length
+                                    }
+                                    hiddenCount={
+                                        showAll ? 0 : rawCount - grants.length
+                                    }
+                                    threshold={THRESHOLD}
+                                />
+                                <div className="yazdirma-gizle">
+                                    <StatusMessage tone="warning">
+                                        <p>
+                                            "{searchTerm}" için {rawCount} fon
+                                            bulundu, ancak hiçbirinin uygunluk
+                                            skoru {THRESHOLD} eşiğini geçmedi.
+                                        </p>
+                                        <p className="mt-2 text-sm">
+                                            Aramanızı farklı kelimelerle
+                                            deneyebilirsiniz.
+                                        </p>
+                                        <div className="mt-3 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setShowAll(!showAll)
+                                                }
+                                                className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                            >
+                                                {showAll
+                                                    ? "Sonuçları gizle"
+                                                    : `Yine de ${rawCount} fonu göster`}
+                                            </button>
+                                        </div>
+                                    </StatusMessage>
+                                </div>
                                 {showAll && (
                                     <div>
-                                        <div className="mt-6 py-15">
+                                        <div className="mt-6 py-15 yazdirma-blok print:py-0 grid grid-cols-1 gap-6">
                                             <TopicChart
                                                 grants={
                                                     showAll ? allGrants : grants
                                                 }
                                             />
+                                            <ScopeChart
+                                                grants={
+                                                    showAll ? allGrants : grants
+                                                }
+                                            />
                                         </div>
-                                        <div className="flex w-full items-center justify-center gap-10 px-6 py-15">
-                                            <div className="flex-3/4">
+                                        <div className="mt-6 grid grid-cols-4 gap-6 print:grid-cols-1">
+                                            <div className="col-span-3 print:col-span-1">
                                                 <ScoreChart
                                                     grants={
                                                         showAll
@@ -221,7 +266,7 @@ export function SearchPage() {
                                                     }
                                                 />
                                             </div>
-                                            <div className="flex-1/4">
+                                            <div>
                                                 <ScoreSummary
                                                     grants={
                                                         showAll
@@ -233,6 +278,21 @@ export function SearchPage() {
                                         </div>
                                         <div className="px-6 py-15">
                                             <GrantTable grants={allGrants} />
+                                        </div>
+                                        <div className="mt-6 text-center yazdirma-gizle">
+                                            <button
+                                                type="button"
+                                                onClick={() => window.print()}
+                                                className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                            >
+                                                Raporu PDF olarak indir
+                                            </button>
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                Açılan pencerede "PDF olarak
+                                                kaydet" seçin,
+                                                üstbilgi/altbilgiyi
+                                                kapatabilirsiniz.
+                                            </p>
                                         </div>
                                     </div>
                                 )}

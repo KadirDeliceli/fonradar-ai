@@ -17,24 +17,23 @@ export function GrantTable({ grants }: GrantTableProps) {
             <table className="w-full text-left text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50 text-gray-600">
                     <tr>
-                        <th className="px-4 py-3 font-medium w-[7%] whitespace-nowrap">
-                            #
-                        </th>
-                        <th className="px-4 py-3 font-medium w-[26%]">
+                        <th className="px-4 py-3 font-medium w-[4%]">#</th>
+                        <th className="px-4 py-3 font-medium w-[24%]">
                             Başlık
                         </th>
                         <th className="px-4 py-3 font-medium w-[13%]">Konu</th>
+                        <th className="px-4 py-3 font-medium w-[8%]">Kapsam</th>
                         <th className="px-4 py-3 font-medium w-[26%]">
                             Açıklama
                         </th>
-                        <th className="px-4 py-3 font-medium w-[10%] whitespace-nowrap">
+                        <th className="px-4 py-3 font-medium w-[8%] whitespace-nowrap">
                             Hibe Oranı
                         </th>
-                        <th className="px-4 py-3 font-medium w-[9%] whitespace-nowrap">
+                        <th className="px-4 py-3 font-medium w-[10%] whitespace-nowrap">
                             Son Başvuru
                         </th>
-                        <th className="px-4 py-3 font-medium w-[4.5%]">Skor</th>
-                        <th className="px-4 py-3 font-medium w-[4.5%]"></th>
+                        <th className="px-4 py-3 font-medium w-[4%]">Skor</th>
+                        <th className="px-4 py-3 font-medium w-[3%] yazdirma-gizle"></th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -56,6 +55,12 @@ export function GrantTable({ grants }: GrantTableProps) {
                                 {grant.konu === null || grant.konu === "null"
                                     ? "Bilgi Bulunamadı"
                                     : grant.konu}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600">
+                                {grant.sehir_durumu === null ||
+                                grant.sehir_durumu === "null"
+                                    ? "Bilgi Bulunamadı"
+                                    : grant.sehir_durumu}
                             </td>
                             <td className="px-4 py-3 text-gray-600">
                                 <span title={grant.aciklama ?? ""}>
@@ -81,7 +86,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                                     {grant.skor}
                                 </span>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3 yazdirma-gizle">
                                 {grant.url && grant.url !== "null" ? (
                                     <a
                                         href={grant.url}
@@ -89,11 +94,11 @@ export function GrantTable({ grants }: GrantTableProps) {
                                         rel="noreferrer"
                                         className="text-blue-600 hover:underline"
                                     >
-                                        İlana git
+                                        İlana Git
                                     </a>
                                 ) : (
                                     <span className="text-red-600 cursor-not-allowed">
-                                        İlan linki bulunamadı
+                                        İlan Linki Bulunamadı
                                     </span>
                                 )}
                             </td>

@@ -1,4 +1,4 @@
-import { PieChart, Pie, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, ResponsiveContainer, Legend } from "recharts";
 import type { Grant } from "../types/Grant.ts";
 
 type TopicChartProps = {
@@ -6,13 +6,14 @@ type TopicChartProps = {
 };
 
 const RENKLER = [
-    "#14532d",
     "#166534",
-    "#15803d",
-    "#22c55e",
-    "#4ade80",
-    "#86efac",
-    "#cffaf2",
+    "#0369a1",
+    "#c2410c",
+    "#7c3aed",
+    "#0891b2",
+    "#be123c",
+    "#a16207",
+    "#4d7c0f",
 ];
 
 export function TopicChart({ grants }: TopicChartProps) {
@@ -22,33 +23,55 @@ export function TopicChart({ grants }: TopicChartProps) {
             item.konu && item.konu !== "null" ? item.konu : "Belirtilmemiş";
         sayim.set(konu, (sayim.get(konu) ?? 0) + 1);
     }
+    const toplam = grants.length;
     const data = [...sayim.entries()]
-        .map(([ad, adet], index) => ({
+        .map(([ad, adet]) => ({
             ad,
             adet,
-            fill: RENKLER[index % RENKLER.length],
+            yuzde: Math.round((adet / toplam) * 100),
         }))
-        .sort((a, b) => b.adet - a.adet);
+        .sort((a, b) => b.adet - a.adet)
+        .map((item, index) => ({
+            ...item,
+            fill: RENKLER[index % RENKLER.length],
+        }));
 
     return (
-        <ResponsiveContainer width="100%" height={500}>
-            <PieChart>
-                <Pie
-                    data={data}
-                    dataKey="adet"
-                    nameKey="ad"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={200}
-                    innerRadius={3}
-                    strokeWidth={0.75}
-                    label={({ name, percent, value }) =>
-                        `${name}  (%${((percent || 0) * 100).toFixed(0)}, ${value} adet)`
-                    }
-                    fontSize={14}
-                    fontWeight="bold"
-                />
-            </PieChart>
-        </ResponsiveContainer>
+        <div className="flex justify-center">
+            <ResponsiveContainer
+                width="100%"
+                height={500}
+                className="print:h-50"
+            >
+                <PieChart>
+                    <Pie
+                        data={data}
+                        dataKey="adet"
+                        nameKey="ad"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={150}
+                        innerRadius={3}
+                        strokeWidth={0.75}
+                    />
+                    <Legend
+                        position="bottom"
+                        layout="vertical"
+                        wrapperStyle={{
+                            fontSize: 14,
+                            paddingTop: 10,
+                            fontWeight: "bold",
+                        }}
+                        formatter={(value, entry) => {
+                            const veri = entry.payload as {
+                                adet?: number;
+                                yuzde?: number;
+                            };
+                            return `${value} - ${veri.adet} adet (%${(veri.yuzde || 0).toFixed(0)})`;
+                        }}
+                    />
+                </PieChart>
+            </ResponsiveContainer>
+        </div>
     );
 }

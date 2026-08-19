@@ -38,7 +38,7 @@ export function ScoreSummary({ grants }: ScoreSummaryProps) {
     ];
 
     return (
-        <div className="w-45">
+        <div className="w-full">
             {kartlar.map((kart) => (
                 <div
                     key={kart.etiket}

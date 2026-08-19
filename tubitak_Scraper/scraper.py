@@ -49,17 +49,33 @@ session.headers.update(HEADERS)
 
 
 _robot_parser = None
+_robot_denendi = False   # "okuma denendi mi" sorusu, "parser hazir mi"dan AYRI tutuluyor
+
 
 def robots_izin_var_mi(url: str) -> bool:
-    """robots.txt kontrolu"""
-    global _robot_parser
-    if _robot_parser is None:
-        _robot_parser = urllib.robotparser.RobotFileParser()
-        _robot_parser.set_url(urljoin(BASE, "/robots.txt"))
+    """
+    robots.txt kontrolu.
+    DUZELTME: Eskiden read() SSL/ag hatasi verince _robot_parser 'yarim' (bos)
+    bir nesne olarak kalip sonraki TUM URL'lere False donuyordu (ilk hata
+    dogru islense de, 2. ve sonraki URL'ler yanlislikla yasaklaniyordu).
+    Simdi: okuma SADECE bir kez denenir (_robot_denendi), _robot_parser ise
+    yalnizca BASARILI olursa atanir. Basarisizsa None kalir ve fonksiyon
+    HER ZAMAN True doner (izin verilir) - internete tekrar gidilmeden.
+    """
+    global _robot_parser, _robot_denendi
+    if not _robot_denendi:
+        _robot_denendi = True
+        parser = urllib.robotparser.RobotFileParser()
+        parser.set_url(urljoin(BASE, "/robots.txt"))
         try:
-            _robot_parser.read()
-        except Exception:
-            return True
+            parser.read()
+            _robot_parser = parser   # SADECE basarili olursa ata
+        except Exception as e:
+            print(f"[ROBOTS] robots.txt okunamadi, izin veriliyor: {e}")
+            # _robot_parser None kalir
+
+    if _robot_parser is None:
+        return True
     return _robot_parser.can_fetch("*", url)
 
 
@@ -153,11 +169,15 @@ def scrape_detail(url: str) -> dict:
         sayfa_metni = ""
 
     # --- Ekli PDF linkleri ---
+    # DUZELTME: eskiden 'soup' (TUM sayfa: nav/header/footer dahil) taraniyordu,
+    # oysa sayfa_metni 'ana'ya (temizlenmis ana icerik) gore aliniyordu -> tutarsizdi.
+    # Simdi PDF linkleri de 'ana' kapsaminda toplaniyor, sayfa_metni ile tutarli.
     pdf_linkleri = []
-    for a in soup.find_all("a", href=True):
-        tam = urljoin(BASE, a["href"])
-        if tam.lower().endswith(".pdf") and tam not in pdf_linkleri:
-            pdf_linkleri.append(tam)
+    if ana:
+        for a in ana.find_all("a", href=True):
+            tam = urljoin(BASE, a["href"])
+            if tam.lower().endswith(".pdf") and tam not in pdf_linkleri:
+                pdf_linkleri.append(tam)
 
     # --- PDF metinlerini cek ve birlestir ---
     pdf_metinleri = []
@@ -246,9 +266,4 @@ def fonlari_getir(force_refresh: bool = False) -> list[dict]:
 
 
 def main():
-    """Komut satirindan elle calistirmak icin: python scraper.py"""
     fonlari_getir()
-
-
-if __name__ == "__main__":
-    main()

@@ -4,11 +4,11 @@ import { mockGrants, mockRawGrants } from "../data/mockGrants.ts";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-// Görsel geliştirme aşamasında testler için flag eklendi. Commit etmeden önce false yapılacak.
+// Görsel geliştirme aşamasında testler için flag eklendi. Test verileri ile çalıştırmak için "true" yapabilirsiniz.
 
 const USE_MOCK = false;
 type AdminScenario = "normal" | "bos" | "hata" | "tek" | "kirli" | "cok";
-const ADMIN_SCENARIO: AdminScenario = "hata";
+const ADMIN_SCENARIO: AdminScenario = "normal";
 
 function delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));

@@ -48,8 +48,7 @@ export function AdminPage() {
                             <StatusMessage>
                                 {grants.length} sonuç bulundu.
                             </StatusMessage>
-                            <br />
-                            <div className="overflow-hidden rounded-lg border border-gray-200">
+                            <div className="overflow-hidden rounded-lg border border-gray-200 mt-6">
                                 <div className="border-b border-gray-200 bg-gray-50 py-5 text-center">
                                     <h1 className="font-semibold text-gray-700">
                                         Tüm Kazınan Fon Listesi

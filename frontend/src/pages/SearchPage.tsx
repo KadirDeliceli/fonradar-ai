@@ -6,6 +6,9 @@ import { BrandLogo } from "../components/BrandLogo.tsx";
 import { QueryPanel } from "../components/QueryPanel.tsx";
 import { StatusMessage } from "../components/StatusMessage.tsx";
 import { GrantTable } from "../components/GrantTable.tsx";
+import { ScoreChart } from "../components/ScoreChart.tsx";
+import { TopicChart } from "../components/TopicChart.tsx";
+import { ScoreSummary } from "../components/ScoreSummary.tsx";
 
 const THRESHOLD = 50;
 
@@ -131,10 +134,40 @@ export function SearchPage() {
                                         </div>
                                     )}
                                 </StatusMessage>
-                                <div className="bg-white p-6 ">
+                                <div className="mt-6 py-15">
+                                    <TopicChart
+                                        grants={showAll ? allGrants : grants}
+                                    />
+                                </div>
+                                <div className="flex w-full items-center justify-center gap-10 px-6 py-15">
+                                    <div className="flex-3/4">
+                                        <ScoreChart
+                                            grants={
+                                                showAll ? allGrants : grants
+                                            }
+                                        />
+                                    </div>
+                                    <div className="flex-1/4">
+                                        <ScoreSummary
+                                            grants={
+                                                showAll ? allGrants : grants
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                                <div className="px-6 py-15">
                                     <GrantTable
                                         grants={showAll ? allGrants : grants}
                                     />
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => window.print()}
+                                        className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                    >
+                                        Raporu PDF olarak indir
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -170,8 +203,37 @@ export function SearchPage() {
                                     </div>
                                 </StatusMessage>
                                 {showAll && (
-                                    <div className="bg-white p-6">
-                                        <GrantTable grants={allGrants} />
+                                    <div>
+                                        <div className="mt-6 py-15">
+                                            <TopicChart
+                                                grants={
+                                                    showAll ? allGrants : grants
+                                                }
+                                            />
+                                        </div>
+                                        <div className="flex w-full items-center justify-center gap-10 px-6 py-15">
+                                            <div className="flex-3/4">
+                                                <ScoreChart
+                                                    grants={
+                                                        showAll
+                                                            ? allGrants
+                                                            : grants
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="flex-1/4">
+                                                <ScoreSummary
+                                                    grants={
+                                                        showAll
+                                                            ? allGrants
+                                                            : grants
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="px-6 py-15">
+                                            <GrantTable grants={allGrants} />
+                                        </div>
                                     </div>
                                 )}
                             </div>

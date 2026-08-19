@@ -93,7 +93,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                                     </a>
                                 ) : (
                                     <span className="text-red-600 cursor-not-allowed">
-                                        İlan bulunamadı
+                                        İlan linki bulunamadı
                                     </span>
                                 )}
                             </td>

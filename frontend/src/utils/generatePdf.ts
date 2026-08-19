@@ -195,8 +195,16 @@ export async function generatePdf({
             pdf.textWithLink(satirlar[0], kenar, ty, { url: fon.url });
         }
     }
-
-    pdf.save(`FonRadar-Rapor-${new Date().toLocaleDateString("tr-TR")}.pdf`);
+    const simdi = new Date();
+    const tarih = simdi.toLocaleDateString("tr-TR").replace(/\./g, "-");
+    const saat = simdi
+        .toLocaleTimeString("tr-TR", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        })
+        .replace(/:/g, ".");
+    pdf.save(`FonRadar-Rapor-${tarih}-${saat}.pdf`);
 }
 
 function temiz(deger: string | null): string {

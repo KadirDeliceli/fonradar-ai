@@ -38,11 +38,7 @@ export function TopicChart({ grants }: TopicChartProps) {
 
     return (
         <div className="flex justify-center">
-            <ResponsiveContainer
-                width="100%"
-                height={500}
-                className="print:h-50"
-            >
+            <ResponsiveContainer width="100%" height={500}>
                 <PieChart>
                     <Pie
                         data={data}

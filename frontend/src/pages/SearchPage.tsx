@@ -10,7 +10,7 @@ import { ScoreChart } from "../components/ScoreChart.tsx";
 import { TopicChart } from "../components/TopicChart.tsx";
 import { ScoreSummary } from "../components/ScoreSummary.tsx";
 import { ScopeChart } from "../components/ScopeChart.tsx";
-import { ReportHeader } from "../components/ReportHeader.tsx";
+import { generatePdf } from "../utils/generatePdf.ts";
 
 const THRESHOLD = 50;
 
@@ -25,6 +25,7 @@ export function SearchPage() {
         "idle" | "loading" | "error" | "success" | "empty" | "lowScore"
     >("idle");
     const [errorMessage, setErrorMessage] = useState("");
+    const [pdfIncludeLow, setPdfIncludeLow] = useState(false);
 
     async function handleSearch() {
         if (query.trim() === "") return;
@@ -72,6 +73,15 @@ export function SearchPage() {
         }
     }
 
+    function handlePdf() {
+        void generatePdf({
+            grants: pdfIncludeLow ? allGrants : grants,
+            searchTerm,
+            threshold: THRESHOLD,
+            totalFound: rawCount,
+        });
+    }
+
     return (
         <div className="min-h-screen bg-white">
             <div
@@ -113,19 +123,7 @@ export function SearchPage() {
 
                         {status === "success" && (
                             <div>
-                                <ReportHeader
-                                    searchTerm={searchTerm}
-                                    count={
-                                        showAll
-                                            ? allGrants.length
-                                            : grants.length
-                                    }
-                                    hiddenCount={
-                                        showAll ? 0 : rawCount - grants.length
-                                    }
-                                    threshold={THRESHOLD}
-                                />
-                                <div className="yazdirma-gizle">
+                                <div>
                                     <StatusMessage>
                                         <p>
                                             {showAll
@@ -150,28 +148,34 @@ export function SearchPage() {
                                         )}
                                     </StatusMessage>
                                 </div>
-                                <div className="mt-6 py-15 yazdirma-blok print:py-0 grid grid-cols-1 gap-16">
-                                    <TopicChart
-                                        grants={showAll ? allGrants : grants}
-                                    />
-                                    <ScopeChart
-                                        grants={showAll ? allGrants : grants}
-                                    />
-                                </div>
-                                <div className="mt-6 grid grid-cols-4 gap-6 print:grid-cols-1 items-center">
-                                    <div className="col-span-3 print:col-span-1">
-                                        <ScoreChart
+                                <div id="pdf-grafikler">
+                                    <div className="mt-6 py-15 grid grid-cols-1 gap-16">
+                                        <TopicChart
+                                            grants={
+                                                showAll ? allGrants : grants
+                                            }
+                                        />
+                                        <ScopeChart
                                             grants={
                                                 showAll ? allGrants : grants
                                             }
                                         />
                                     </div>
-                                    <div>
-                                        <ScoreSummary
-                                            grants={
-                                                showAll ? allGrants : grants
-                                            }
-                                        />
+                                    <div className="mt-6 grid grid-cols-4 gap-6 items-center">
+                                        <div className="col-span-3">
+                                            <ScoreChart
+                                                grants={
+                                                    showAll ? allGrants : grants
+                                                }
+                                            />
+                                        </div>
+                                        <div>
+                                            <ScoreSummary
+                                                grants={
+                                                    showAll ? allGrants : grants
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="px-6 py-15">
@@ -179,19 +183,30 @@ export function SearchPage() {
                                         grants={showAll ? allGrants : grants}
                                     />
                                 </div>
-                                <div className="mt-4 text-center yazdirma-gizle">
+                                <div className="mt-4 flex items-center justify-center gap-4">
                                     <button
                                         type="button"
-                                        onClick={() => window.print()}
-                                        className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                        onClick={handlePdf}
+                                        className="rounded-full bg-green-950 px-6 py-3 text-sm font-medium text-white hover:bg-green-800"
                                     >
                                         Raporu PDF olarak indir
                                     </button>
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Açılan pencerede "PDF olarak kaydet"
-                                        seçin, üstbilgi/altbilgiyi
-                                        kapatabilirsiniz.
-                                    </p>
+
+                                    {rawCount > grants.length && (
+                                        <label className="flex items-center gap-2 text-sm text-gray-600">
+                                            <input
+                                                type="checkbox"
+                                                checked={pdfIncludeLow}
+                                                onChange={(event) =>
+                                                    setPdfIncludeLow(
+                                                        event.target.checked,
+                                                    )
+                                                }
+                                                className="h-4 w-4 rounded border-gray-300"
+                                            />
+                                            Eşik altı fonları da rapora ekle
+                                        </label>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -204,19 +219,7 @@ export function SearchPage() {
 
                         {status === "lowScore" && (
                             <div>
-                                <ReportHeader
-                                    searchTerm={searchTerm}
-                                    count={
-                                        showAll
-                                            ? allGrants.length
-                                            : grants.length
-                                    }
-                                    hiddenCount={
-                                        showAll ? 0 : rawCount - grants.length
-                                    }
-                                    threshold={THRESHOLD}
-                                />
-                                <div className="yazdirma-gizle">
+                                <div>
                                     <StatusMessage tone="warning">
                                         <p>
                                             "{searchTerm}" için {rawCount} fon
@@ -244,21 +247,16 @@ export function SearchPage() {
                                 </div>
                                 {showAll && (
                                     <div>
-                                        <div className="mt-6 py-15 yazdirma-blok print:py-0 grid grid-cols-1 gap-6">
-                                            <TopicChart
-                                                grants={
-                                                    showAll ? allGrants : grants
-                                                }
-                                            />
-                                            <ScopeChart
-                                                grants={
-                                                    showAll ? allGrants : grants
-                                                }
-                                            />
-                                        </div>
-                                        <div className="mt-6 grid grid-cols-4 gap-6 print:grid-cols-1">
-                                            <div className="col-span-3 print:col-span-1">
-                                                <ScoreChart
+                                        <div id="pdf-grafikler">
+                                            <div className="mt-6 py-15 grid grid-cols-1 gap-6">
+                                                <TopicChart
+                                                    grants={
+                                                        showAll
+                                                            ? allGrants
+                                                            : grants
+                                                    }
+                                                />
+                                                <ScopeChart
                                                     grants={
                                                         showAll
                                                             ? allGrants
@@ -266,33 +264,56 @@ export function SearchPage() {
                                                     }
                                                 />
                                             </div>
-                                            <div>
-                                                <ScoreSummary
-                                                    grants={
-                                                        showAll
-                                                            ? allGrants
-                                                            : grants
-                                                    }
-                                                />
+                                            <div className="mt-6 grid grid-cols-4 gap-6">
+                                                <div className="col-span-3">
+                                                    <ScoreChart
+                                                        grants={
+                                                            showAll
+                                                                ? allGrants
+                                                                : grants
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <ScoreSummary
+                                                        grants={
+                                                            showAll
+                                                                ? allGrants
+                                                                : grants
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="px-6 py-15">
                                             <GrantTable grants={allGrants} />
                                         </div>
-                                        <div className="mt-6 text-center yazdirma-gizle">
+                                        <div className="mt-4 flex items-center justify-center gap-4">
                                             <button
                                                 type="button"
-                                                onClick={() => window.print()}
-                                                className="inline-block shadow-inner rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:underline"
+                                                onClick={handlePdf}
+                                                className="rounded-full bg-green-950 px-6 py-3 text-sm font-medium text-white hover:bg-green-800"
                                             >
                                                 Raporu PDF olarak indir
                                             </button>
-                                            <p className="mt-2 text-xs text-gray-500">
-                                                Açılan pencerede "PDF olarak
-                                                kaydet" seçin,
-                                                üstbilgi/altbilgiyi
-                                                kapatabilirsiniz.
-                                            </p>
+
+                                            {rawCount > grants.length && (
+                                                <label className="flex items-center gap-2 text-sm text-gray-600">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={pdfIncludeLow}
+                                                        onChange={(event) =>
+                                                            setPdfIncludeLow(
+                                                                event.target
+                                                                    .checked,
+                                                            )
+                                                        }
+                                                        className="h-4 w-4 rounded border-gray-300"
+                                                    />
+                                                    Eşik altı fonları da rapora
+                                                    ekle
+                                                </label>
+                                            )}
                                         </div>
                                     </div>
                                 )}

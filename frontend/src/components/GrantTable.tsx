@@ -33,7 +33,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                             Son Başvuru
                         </th>
                         <th className="px-4 py-3 font-medium w-[4%]">Skor</th>
-                        <th className="px-4 py-3 font-medium w-[3%] yazdirma-gizle"></th>
+                        <th className="px-4 py-3 font-medium w-[3%]"></th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -86,7 +86,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                                     {grant.skor}
                                 </span>
                             </td>
-                            <td className="px-4 py-3 yazdirma-gizle">
+                            <td className="px-4 py-3">
                                 {grant.url && grant.url !== "null" ? (
                                     <a
                                         href={grant.url}

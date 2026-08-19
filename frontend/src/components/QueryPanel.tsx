@@ -15,7 +15,7 @@ export function QueryPanel({
                 event.preventDefault();
                 onSearch();
             }}
-            className="flex gap-3 rounded-full border border-gray-200 bg-white p-4 yazdirma-gizle"
+            className="flex gap-3 rounded-full border border-gray-200 bg-white p-4"
         >
             <img
                 src="/radar_icon.svg"

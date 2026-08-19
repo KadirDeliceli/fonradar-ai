@@ -162,7 +162,7 @@ def fonlari_skorla(fonlar: list[dict], sorgu: str) -> list[dict]:
 
         except RetryError as e:
             gercek_hata = e.last_attempt.exception()
-            print(f"\n🚨 [API HATASI YAKALANDI] - {baslik}")
+            print(f"\n🚨 [API HATASI YAKALANDI] - {baslik} : {e}\n ")
             # ... (loglama kısımlarınız aynı kalsın)
             raise
 

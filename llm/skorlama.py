@@ -17,7 +17,8 @@ from __future__ import annotations
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from llm.llm import get_llm
-from tenacity import retry, stop_after_attempt, wait_random_exponential
+import time
+from tenacity import retry, stop_after_attempt, wait_random_exponential, RetryError
 
 MAKS_KARAKTER = 15000
 
@@ -110,7 +111,6 @@ JSON Formatı:
 }}
 """
 
-# Yapili LLM'i BIR KEZ kur, her fon icin yeniden yaratma (optimizasyon).
 _yapili_llm = None
 
 
@@ -141,22 +141,34 @@ def fonu_skorla(fon: dict, sorgu: str) -> FonSkoru:
 
 
 def fonlari_skorla(fonlar: list[dict], sorgu: str) -> list[dict]:
-    """
-    Fon listesini skorlar, skora gore YUKSEKTEN DUSUGE sirali dict listesi doner.
-    Hata durumunda yutmaz, yukarıya (mainAPI) fırlatır.
-    """
     sonuclar = []
     for i, fon in enumerate(fonlar, 1):
         baslik = fon.get("baslik", "?")
         print(f"[SKOR] ({i}/{len(fonlar)}) {baslik}")
 
-        # Hatayı yutmuyoruz ki mainAPI.py tarafındaki try-except yakalayıp düzgün JSON dönebilsin
-        skor = fonu_skorla(fon, sorgu)
-        sonuclar.append({
-            **skor.model_dump(),
-            "baslik": baslik,
-            "url": fon.get("url"),
-        })
+        try:
+            skor = fonu_skorla(fon, sorgu)
+            sonuclar.append({
+                **skor.model_dump(),
+                "baslik": baslik,
+                "url": fon.get("url"),
+            })
+
+            # HER FON SKORLANDIKTAN SONRA 10 SANİYE BEKLE
+            # Böylece 1 dakikalık token limitini doldurmamış oluruz
+            if i < len(fonlar):
+                print("⏳ Token limitini aşmamak için 10 saniye bekleniyor...")
+                time.sleep(10)
+
+        except RetryError as e:
+            gercek_hata = e.last_attempt.exception()
+            print(f"\n🚨 [API HATASI YAKALANDI] - {baslik}")
+            # ... (loglama kısımlarınız aynı kalsın)
+            raise
+
+        except Exception as e:
+            print(f"\n🚨 [BEKLENMEYEN HATA] {baslik}: {e}\n")
+            raise
 
     sonuclar.sort(key=lambda x: x["skor"], reverse=True)
     return sonuclar

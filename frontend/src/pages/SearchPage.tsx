@@ -148,8 +148,13 @@ export function SearchPage() {
                                         )}
                                     </StatusMessage>
                                 </div>
+                                <div className="px-6 py-4">
+                                    <GrantTable
+                                        grants={showAll ? allGrants : grants}
+                                    />
+                                </div>
                                 <div id="pdf-grafikler">
-                                    <div className="mt-6 py-15 grid grid-cols-1 gap-16">
+                                    <div className="my-6 py-10 grid grid-cols-1 gap-16">
                                         <TopicChart
                                             grants={
                                                 showAll ? allGrants : grants
@@ -161,7 +166,7 @@ export function SearchPage() {
                                             }
                                         />
                                     </div>
-                                    <div className="mt-6 grid grid-cols-4 gap-6 items-center">
+                                    <div className="my-6 grid grid-cols-4 gap-6 items-center">
                                         <div className="col-span-3">
                                             <ScoreChart
                                                 grants={
@@ -178,12 +183,7 @@ export function SearchPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="px-6 py-15">
-                                    <GrantTable
-                                        grants={showAll ? allGrants : grants}
-                                    />
-                                </div>
-                                <div className="mt-4 flex items-center justify-center gap-4">
+                                <div className="my-8 flex items-center justify-center gap-4">
                                     <button
                                         type="button"
                                         onClick={handlePdf}
@@ -247,8 +247,11 @@ export function SearchPage() {
                                 </div>
                                 {showAll && (
                                     <div>
+                                        <div className="px-6 py-15">
+                                            <GrantTable grants={allGrants} />
+                                        </div>
                                         <div id="pdf-grafikler">
-                                            <div className="mt-6 py-15 grid grid-cols-1 gap-6">
+                                            <div className="my-6 py-15 grid grid-cols-1 gap-6">
                                                 <TopicChart
                                                     grants={
                                                         showAll
@@ -264,7 +267,7 @@ export function SearchPage() {
                                                     }
                                                 />
                                             </div>
-                                            <div className="mt-6 grid grid-cols-4 gap-6">
+                                            <div className="my-6 grid grid-cols-4 gap-6">
                                                 <div className="col-span-3">
                                                     <ScoreChart
                                                         grants={
@@ -285,10 +288,7 @@ export function SearchPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="px-6 py-15">
-                                            <GrantTable grants={allGrants} />
-                                        </div>
-                                        <div className="mt-4 flex items-center justify-center gap-4">
+                                        <div className="my-6 flex items-center justify-center gap-4">
                                             <button
                                                 type="button"
                                                 onClick={handlePdf}

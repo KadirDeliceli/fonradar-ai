@@ -12,6 +12,14 @@ type ScoreChartProps = {
     grants: Grant[];
 };
 
+type ColoredBarProps = {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    payload?: { skor: number };
+};
+
 function getBarColor(score: number): string {
     if (score >= 85) return "#22c55e";
     if (score >= 70) return "#eab308";
@@ -19,8 +27,7 @@ function getBarColor(score: number): string {
     return "#ef4444";
 }
 
-function ColeredBar(props: any) {
-    const { x, y, width, height, payload } = props;
+function ColeredBar({ x, y, width, height, payload }: ColoredBarProps) {
     return (
         <rect
             x={x}
@@ -28,7 +35,7 @@ function ColeredBar(props: any) {
             width={width}
             height={height}
             rx={10}
-            fill={getBarColor(payload.skor)}
+            fill={getBarColor(payload?.skor ?? 0)}
         />
     );
 }

@@ -59,7 +59,7 @@ export function GrantTable({ grants }: GrantTableProps) {
                             <td className="px-4 py-3 text-gray-600">
                                 {grant.sehir_durumu === null ||
                                 grant.sehir_durumu === "null"
-                                    ? "Bilgi Bulunamadı"
+                                    ? "bilgi_yok"
                                     : grant.sehir_durumu}
                             </td>
                             <td className="px-4 py-3 text-gray-600">

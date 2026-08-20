@@ -2,7 +2,7 @@ import type { Grant, MatchScoreResponse } from "../types/Grant.ts";
 import type { RawGrant, FetchedGrantsResponse } from "../types/RawGrant.ts";
 import { mockGrants, mockRawGrants } from "../data/mockGrants.ts";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
 // Görsel geliştirme aşamasında testler için flag eklendi. Test verileri ile çalıştırmak için "true" yapabilirsiniz.
 
@@ -66,12 +66,14 @@ export async function fetchMatchedGrants(query: string): Promise<Grant[]> {
 
     const data: MatchScoreResponse = await response.json();
 
-    if (data.durum !== "basarili") {
+    if (data.durum === "basarili") {
         throw new Error(
             "Analiz servisi şu anda yanıt vermiyor. Lütfen daha sonra tekrar deneyin.",
         );
     }
-
+    if (data.durum === "hazirlaniyor") {
+        throw new Error("Fon verileri hazırlanıyor. Lütfen birkaç dakika sonra tekrar deneyin.");
+    }
     return data.sonuclar;
 }
 

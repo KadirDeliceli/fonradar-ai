@@ -16,7 +16,7 @@
 
 FonRadar AI, kullanıcıdan (kurum/işletme) serbest metin biçiminde alınan ihtiyaç tanımını (sektör, konu, şehir, ölçek vb.), TÜBİTAK ulusal destek programları gibi kaynaklardan toplanan güncel fon/hibe verileriyle karşılaştırarak 0-100 arası hassas bir uygunluk skoru üretir. Amaç, işletmelerin kendileri için en alakalı hibe fırsatını bulmak için saatler harcamasının önüne geçmek ve bu süreci saniyeler içinde, gerekçeli ve yapılandırılmış bir çıktıya dönüştürmektir.
 
-Sistem, yapılandırılabilir bir LLM sağlayıcısı (varsayılan: **Groq**, alternatif olarak **Gemini** desteği koda hazır durumda) üzerinden, LangChain'in yapılandırılmış çıktı (`with_structured_output`) mekanizmasıyla çalışır. Bu sayede model çıktısı doğrudan bir Pydantic şemasına (skor, gerekçe, fon kodu, şehir uyumu, son başvuru tarihi, hibe oranı vb.) doğrulanarak alınır; elle JSON ayrıştırma veya kırılgan `try/except` bloklarına ihtiyaç duyulmaz.
+Sistem, `.env` dosyasındaki `LLM_PROVIDER` değişkeniyle anında değiştirilebilen bir LLM sağlayıcı mimarisi üzerine kuruludur: **Groq** (varsayılan) ve **Gemini**, aynı `get_llm()` fonksiyonu üzerinden dinamik olarak seçilir, sağlayıcı paketleri yalnızca gerektiğinde (lazy import) yüklenir. Skorlama katmanı ise LangChain'in yapılandırılmış çıktı (`with_structured_output`) mekanizmasıyla çalışır. Bu sayede model çıktısı doğrudan bir Pydantic şemasına (skor, gerekçe, fon kodu, şehir uyumu, son başvuru tarihi, hibe oranı vb.) doğrulanarak alınır; elle JSON ayrıştırma veya kırılgan `try/except` bloklarına ihtiyaç duyulmaz.
 
 Verinin arkasındaki mimari üç ana bileşenden oluşur:
 
@@ -41,7 +41,7 @@ Verinin arkasındaki mimari üç ana bileşenden oluşur:
 | Katman | Teknoloji |
 |---|---|
 | Web Çatısı (API) | **FastAPI**, Uvicorn |
-| LLM Entegrasyonu | **LangChain**, `langchain-groq` (**Groq** — varsayılan sağlayıcı), `langchain-google-genai` (Gemini — opsiyonel/lazy-import alternatif) |
+| LLM Entegrasyonu | **LangChain**, `langchain-groq` (**Groq** — varsayılan sağlayıcı) ve `langchain-google-genai` (**Gemini**) — `LLM_PROVIDER` ile `.env` üzerinden anında değiştirilebilir, ikisi de lazy-import |
 | Yapılandırılmış Çıktı | **Pydantic** (`with_structured_output`, `json_mode`) |
 | Vektör Veritabanı | **ChromaDB** (kalıcı/`PersistentClient`) |
 | Embedding Modeli | `sentence-transformers` — `paraphrase-multilingual-MiniLM-L12-v2` (çok dilli, yerel) |
@@ -79,6 +79,13 @@ Verinin arkasındaki mimari üç ana bileşenden oluşur:
    # LLM_MODEL=llama-3.3-70b-versatile   # alternatif model örneği
    ```
    > **Not:** `.env.example` içinde anahtar `LLM_API_KEY_` (sonunda alt çizgi ile) yazılıdır; kendi `.env` dosyanızda bunu `LLM_API_KEY` olarak düzeltmeyi unutmayın, aksi hâlde `llm/config.py` boş anahtar okur.
+
+   **Sağlayıcı değiştirmek** için `LLM_PROVIDER` değerini `gemini` yapmanız yeterlidir; kod tarafında başka hiçbir değişiklik gerekmez:
+   ```env
+   LLM_PROVIDER=gemini
+   LLM_API_KEY=AIza...           # Gemini API anahtarınız
+   # LLM_MODEL belirtilmezse sağlayıcıya göre otomatik varsayılan seçilir (groq -> openai/gpt-oss-safeguard-20b, gemini -> gemini-2.5-flash)
+   ```
 
 ## Kullanım (Usage)
 

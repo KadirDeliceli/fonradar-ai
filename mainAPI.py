@@ -1,20 +1,3 @@
-"""
-FonRadar AI - FastAPI (BackgroundTasks)
-=======================================
-Kullaniciyi BEKLETMEZ:
-  - Istek gelince MEVCUT (gerekirse eski) Chroma verisiyle hemen arar + skorlar,
-    sonucu JSON olarak DONER.
-  - Veri eskiyse (TTL doldu) tazelemeyi (build_vector_db) ARKA PLANA atar;
-    yeni veri hazir olunca BIR SONRAKI istekte gelir.
-  - build_vector_db / skorlama print'leri uvicorn'u calistirdigin KONSOLA duser.
-
-Calistirma (projenin KOKUNDEN):
-    uvicorn backend.app.main:app --reload
-Tarayici / istemci:
-    http://127.0.0.1:8000/ara?sorgu=Ankaradaki yesil donusum fonlari
-    http://127.0.0.1:8000/docs
-"""
-import json
 import threading
 import time
 

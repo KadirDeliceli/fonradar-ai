@@ -188,9 +188,7 @@ def build_vector_db(force_reindex: bool = False):
     return chroma_client, collection
 
 
-# ==========================================
-# SEMANTİK ARAMA SORGUSU (main.py İÇİN)
-# ==========================================
+
 
 def ara(query_text: str, k: int = 5):
     """

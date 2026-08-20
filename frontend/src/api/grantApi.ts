@@ -66,13 +66,13 @@ export async function fetchMatchedGrants(query: string): Promise<Grant[]> {
 
     const data: MatchScoreResponse = await response.json();
 
-    if (data.durum === "basarili") {
+    if (data.durum === "basarısız") {
         throw new Error(
             "Analiz servisi şu anda yanıt vermiyor. Lütfen daha sonra tekrar deneyin.",
         );
     }
     if (data.durum === "hazirlaniyor") {
-        throw new Error("Fon verileri hazırlanıyor. Lütfen birkaç dakika sonra tekrar deneyin.");
+        throw new Error(data.mesaj);
     }
     return data.sonuclar;
 }
